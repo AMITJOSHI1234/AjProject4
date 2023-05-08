@@ -1,0 +1,17 @@
+
+Apr 06, 2023 14:39:16.80 NEW SESSION
+Apr 06, 2023 14:39:16.80 [14256:12348:0406/143916.794:ERROR:device_event_log_impl.cc(222)] [14:39:16.785] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 14:39:16.80 [14256:12348:0406/143916.794:ERROR:device_event_log_impl.cc(222)] [14:39:16.785] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 14:39:18.58 INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Apr 06, 2023 14:42:26.06 [14256:12348:0406/144226.063:ERROR:device_event_log_impl.cc(222)] [14:42:26.060] USB: usb_service_win.cc:104 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: Element not found. (0x490)
+
+Apr 06, 2023 16:22:06.44 NEW SESSION
+Apr 06, 2023 16:22:06.44 [13624:1328:0406/162206.342:ERROR:device_event_log_impl.cc(222)] [16:22:06.342] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 16:22:06.45 [13624:1328:0406/162206.342:ERROR:device_event_log_impl.cc(222)] [16:22:06.342] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 16:22:07.37 INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+Apr 06, 2023 16:27:21.88 [13624:1328:0406/162721.879:ERROR:sharing_service.cc(252)] Device un-registration failed with fatal error
+
+Apr 06, 2023 17:58:42.23 NEW SESSION
+Apr 06, 2023 17:58:42.24 [3192:8636:0406/175842.234:ERROR:device_event_log_impl.cc(222)] [17:58:42.234] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 17:58:42.27 [3192:8636:0406/175842.234:ERROR:device_event_log_impl.cc(222)] [17:58:42.235] USB: usb_device_handle_win.cc:1046 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+Apr 06, 2023 17:58:43.55 INFO: Created TensorFlow Lite XNNPACK delegate for CPU.

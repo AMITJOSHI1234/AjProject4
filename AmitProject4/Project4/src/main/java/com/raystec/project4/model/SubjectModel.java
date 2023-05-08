@@ -1,0 +1,425 @@
+package com.raystec.project4.model;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.raystec.project4.bean.CourseBean;
+import com.raystec.project4.bean.StudentBean;
+import com.raystec.project4.bean.SubjectBean;
+import com.raystec.project4.exception.ApplicationException;
+import com.raystec.project4.exception.DatabaseException;
+import com.raystec.project4.exception.DublicateRecordException;
+import com.raystec.project4.util.JDBCDataSource;
+
+/**
+ * JDBC Implementation of Subject Model.
+ * 
+ * @author Amit Joshi
+ *
+ */
+public class SubjectModel {
+
+	private static Logger log = Logger.getLogger(SubjectModel.class);
+	
+	/**
+	 * create non bussiness primary key
+	 * @return integer
+	 * @throws DatabaseException
+	 */
+	private Integer nextPK() throws DatabaseException {
+		   log.debug("Model nextpk Started");
+		   Connection conn=null;
+		   int pk=0;
+		   try {
+		   
+			   conn = JDBCDataSource.getConnection();
+			   PreparedStatement pstmt =conn.prepareStatement("SELECT MAX(ID) FROM ST_SUBJECT");
+			   ResultSet rs = pstmt.executeQuery();
+			   while(rs.next()) {
+				   pk = rs.getInt(1);
+			   }
+		   rs.close();
+		   }  catch(Exception e) {
+			   log.error("Database Exception..",e);
+			   throw new DatabaseException("Exception : Exception in getting pk");
+			   
+		   }finally {
+			   JDBCDataSource.closeConnection(conn);
+		   }
+		   log.debug("Model next pk End" );
+		   return pk = pk+1;
+	   }
+	
+	/**
+	 * add record in database
+	 * @param bean
+	 * @throws ApplicationException
+	 * @throws DuplicateRecordException
+	 */
+
+	public long add(SubjectBean bean) throws ApplicationException, DublicateRecordException {
+		   log.debug("Model add Started");
+		   Connection conn=null;
+		   
+
+	        CourseModel cModel = new CourseModel();
+	        CourseBean CourseBean = cModel.FindByPK(bean.getCourseId());
+	        bean.setCourseName(CourseBean.getName());
+
+	        SubjectBean duplicateName = findByName(bean.getCourseName());
+	        int pk = 0;
+
+	        if (duplicateName != null) {
+	            throw new DublicateRecordException("Subject Name already exists");
+	        }
+			
+				   
+		   
+		   try {
+			   conn = JDBCDataSource.getConnection();
+			   pk=nextPK();
+			   conn.setAutoCommit(false);
+			   PreparedStatement pstmt = conn.prepareStatement("INSERT INTO  ST_SUBJECT VALUE(?,?,?,?,?,?,?,?,?)");
+			   	pstmt.setInt(1,pk);
+			   	pstmt.setString(2, bean.getSubjectName());
+			   	pstmt.setString(3, bean.getCourseName());
+			   	pstmt.setLong(4, bean.getCourseId());
+			   	pstmt.setString(5, bean.getDescription());
+			   	pstmt.setString(6, bean.getCreatedBy());
+			   	pstmt.setString(7, bean.getModifiedBy());
+			   	pstmt.setTimestamp(8, bean.getCreateDateTime());
+			   	pstmt.setTimestamp(9, bean.getCreateDateTime());
+			   	pstmt.executeUpdate();
+			   	conn.commit();
+			   	pstmt.close();
+			   	conn.close();
+		   }catch(Exception e) {
+			   log.error("Database Exception....",e);
+			   try {
+				   conn.rollback();
+			   }catch(Exception ex) {
+				   //ex.printStackTrace();
+				   throw new ApplicationException("Excetion : add rollback Exception " +ex.getMessage());
+			   }
+			 
+		   }finally {
+			   JDBCDataSource.closeConnection(conn);
+		   }
+		   log.debug("Model add End");
+		return pk;	  
+	   }
+	
+	/**
+	 * delete record in database
+	 * @param bean
+	 * @throws ApplicationException
+	 */
+	
+	 public void Delete(SubjectBean bean) throws ApplicationException {
+		   log.debug("Model Delete Started");
+		   Connection conn = null;
+		   try {
+			   conn = JDBCDataSource.getConnection();
+			   conn.setAutoCommit(false);
+			   PreparedStatement pstmt = conn.prepareStatement("DELETE  FROM ST_SUBJECT WHERE ID=?");
+			   pstmt.setLong(1, bean.getId());
+			   pstmt.executeUpdate();
+			   conn.commit();
+			   pstmt.close();
+		   }catch(Exception e) {
+			   log.error("Database Exception....",e);
+			   try {
+				   conn.rollback();
+			   }catch(Exception ex) {
+				   throw new ApplicationException("Exception : Delete rollback Wxception "+ ex.getMessage());
+			   }
+			   throw new ApplicationException("Exception in delete subjecte");
+			   
+		   }finally {
+			   JDBCDataSource.closeConnection(conn);
+		   }
+		   log.debug("Model delete End");   
+	   }
+	 	 
+	 /**
+		 * find record by name from database
+		 * @param name
+		 * @return bean
+		 * @throws ApplicationException
+		 */
+	
+	 public SubjectBean findByName(String name) throws ApplicationException {
+		 log.debug("Model findByName Started");
+		 StringBuffer sql=new StringBuffer("SELECT * FROM ST_SUBJECT WHERE SUBJECT_NAME=?");
+		 SubjectBean bean=null;
+		 Connection conn=null;
+		 
+		 try {
+			 conn=JDBCDataSource.getConnection();
+			 PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+			 pstmt.setString(1,name);
+			 System.out.println(name+"jhdsfuhf");
+			 ResultSet rs=pstmt.executeQuery();
+			 System.out.println("query working");
+			 while(rs.next()) {
+				 bean=new SubjectBean();
+				 bean.setId(1);
+				 bean.setSubjectName(rs.getString(2));
+				 bean.setDescription(rs.getString(3));
+				 bean.setCourseId(rs.getLong(4));
+				 bean.setCourseName(rs.getString(5));
+				 bean.setCreatedBy(rs.getString(6));
+				 bean.setModifiedBy(rs.getString(7));
+				 bean.setCreateDateTime(rs.getTimestamp(8));
+				 bean.setModifiedDatetime(rs.getTimestamp(9));			 
+			 }
+			 rs.close();
+		 }catch(Exception e) {
+			 log.error("Database Exception...",e);
+			 throw new ApplicationException("Exception in getting subject by name");
+		 }finally {
+			 JDBCDataSource.closeConnection(conn);
+			 log.debug("Model findByName End");
+		 }
+		 return bean; 
+	 }
+	 /**
+		 * update record in database
+		 * @param bean
+		 * @throws ApplicationException
+		 * @throws DuplicateRecordException
+		 */
+    public void update(SubjectBean bean) throws ApplicationException {
+    	log.debug("Model update start");
+    	Connection conn = null;
+    	
+    	CourseModel cModel = new CourseModel();
+    	CourseBean courseBean = cModel.FindByPK(bean.getCourseId());
+    	bean.setCourseName(courseBean.getName());
+    	
+    	try {
+    		conn = JDBCDataSource.getConnection();
+    		conn.setAutoCommit(false);
+    		PreparedStatement pstmt = conn.prepareStatement("UPDATE ST_SUBJECT SET SUBJECT_NAME=?,COURSE_NAME=?,COURSE_ID=?,DESCRIPTION=?,CREATED_BY=?,MODIFIED_BY=?,CREATED_DATETIME=?,MODIFIED_DATETIME=? WHERE ID=?");
+    		pstmt.setString(1, bean.getSubjectName());
+			 pstmt.setString(2, bean.getCourseName());
+			 pstmt.setLong(3, bean.getCourseId());
+			 pstmt.setString(4, bean.getDescription());
+			 pstmt.setString(5, bean.getCreatedBy());
+			 pstmt.setString(6, bean.getModifiedBy());
+			 pstmt.setTimestamp(7,bean.getCreateDateTime());
+			 pstmt.setTimestamp(8, bean.getModifiedDatetime());
+			 pstmt.setLong(9, bean.getId());
+			 pstmt.executeUpdate();
+			 conn.commit();
+			 pstmt.close();  		
+    	}catch(Exception e) {
+			 e.printStackTrace();
+			 log.error("Database Exception,,,,,,,",e);
+			 try {
+				 conn.rollback();
+			 }catch(Exception ex) {
+				 throw new ApplicationException("Exception : update rollback Exception " +ex.getMessage() );
+			 }
+			 throw new ApplicationException("Exception :Exception in update subject");
+		 }finally {
+			 JDBCDataSource.closeConnection(conn);
+		 }
+		 log.debug("Model upodate End");
+		 
+	 }
+    /**
+	 * find record by pk from database
+	 * @param pk
+	 * @return bean
+	 * @throws ApplicationException
+	 */
+ public SubjectBean FindByPK(long pk) throws ApplicationException {
+	 log.debug("Model FindByPK Started");
+	 StringBuffer sql = new StringBuffer("SELECT * FROM ST_SUBJECT WHERE ID=?");
+	 Connection conn = null;
+	 SubjectBean bean = null;
+	 try {
+		 conn = JDBCDataSource.getConnection();
+		 PreparedStatement pstmt=conn.prepareStatement(sql.toString());
+		 pstmt.setLong(1, pk);
+		 ResultSet rs=pstmt.executeQuery();
+		 
+		 while(rs.next()) {
+			 bean = new SubjectBean();
+			 bean.setId(rs.getLong(1));
+			 bean.setSubjectName(rs.getString(2));
+			 bean.setCourseName(rs.getString(3));
+			 bean.setCourseId(rs.getLong(4));
+			 bean.setDescription(rs.getString(5));
+			 bean.setCreatedBy(rs.getString(6));
+			 bean.setModifiedBy(rs.getString(7));
+			 bean.setCreateDateTime(rs.getTimestamp(8));
+			 bean.setModifiedDatetime(rs.getTimestamp(9));
+		 }
+		 rs.close();
+	 }catch(Exception e) {
+		 log.error("Database Exception...",e);
+		 throw new ApplicationException("Exception in getting subject by pk");
+	 }finally {
+		 JDBCDataSource.closeConnection(conn);
+		 log.debug("Model FindbyPK End");
+	 }
+	 return bean;
+ }
+
+/**
+ * search record from database
+ * @param bean
+ * @return list
+ * @throws ApplicationException
+ */
+
+
+
+public List search( SubjectBean bean) throws DatabaseException, ApplicationException {
+ return search(bean,0,0);
+}
+
+/**
+ * search record from database
+ * @param bean
+ * @param pageNo
+ * @param PageSize
+ * @return list
+ * @throws ApplicationException
+ */
+
+public List search(SubjectBean bean,int pageNo,int pageSize) throws DatabaseException, ApplicationException {
+ log.debug("Model search Started");
+ StringBuffer sql= new StringBuffer("Select * from ST_SUBJECT where true");
+ if(bean !=null) {
+	 if(bean.getId() > 0) {
+		 sql.append(" AND ID = " + bean.getId());
+		 System.out.println("NOT null");
+	 }
+	 if(bean.getSubjectName() != null && bean.getSubjectName().length() > 0) {
+		 sql.append(" AND Subject_Name like '" + bean.getSubjectName() + "%'");
+	 }
+	  
+	 if(bean.getDescription() != null && bean.getDescription().length() > 0) {
+		 sql.append(" AND Description like '" + bean.getDescription() + "%'");
+	 }
+	 if(bean.getCourseName() != null && bean.getCourseName().length() > 0) {
+		 sql.append(" AND course_Name like '" + bean.getCourseName() + "%'");
+	 }
+	 if(bean.getCourseId() > 0) {
+		 sql.append(" AND Course_id = " + bean.getCourseId());
+	 }
+	
+
+ }
+ if(pageSize > 0) {
+	 pageNo = (pageNo - 1) * pageSize;
+	 sql.append(" limit "+ pageNo +","+ pageSize);
+ }
+ 
+ ArrayList list = new ArrayList();
+ Connection conn=null;
+ try {
+	 conn=JDBCDataSource.getConnection();
+	 PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+	 System.out.println(sql);
+	 ResultSet rs = pstmt.executeQuery();
+	 while(rs.next()) {
+		 bean=new SubjectBean();
+		 bean.setId(rs.getLong(1));
+		 bean.setSubjectName(rs.getString(2));
+		 bean.setCourseName(rs.getString(3));
+		 bean.setCourseId(rs.getLong(4));
+		 bean.setDescription(rs.getString(5));
+		 bean.setCreatedBy(rs.getString(6));
+		 bean.setModifiedBy(rs.getString(7));
+		 bean.setCreateDateTime(rs.getTimestamp(8));
+		 bean.setModifiedDatetime(rs.getTimestamp(9));
+			list.add(bean);
+	 }
+	 rs.close();
+ }catch(Exception e) {
+	 log.error("Database Exception...",e);
+	 throw new ApplicationException("Exception in the search"+e.getMessage());
+ }finally {
+	 JDBCDataSource.closeConnection(conn);
+ }
+ log.debug("MOdel search End");
+ return list;
+}
+
+/**
+ * list of records from database
+ * @return list
+ * @throws ApplicationException
+ */
+
+
+public List list() throws Exception {
+ return list(0,0);
+}
+/**
+ * list of records from database
+ * @param pageNo
+ * @param pageSize
+ * @return list
+ * @throws ApplicationException
+ */
+
+public List list(int pageNo,int pageSize) throws Exception{
+
+log.debug("model list started");
+
+List list = new ArrayList();
+
+StringBuffer sql = new StringBuffer("select * from st_subject");
+
+if(pageSize>0){
+  pageNo= (pageNo-1)*pageSize;
+sql.append(" limit "+pageNo+" ,"+pageSize); }
+
+Connection conn=null;
+
+try{ conn= JDBCDataSource.getConnection(); PreparedStatement pstmt =
+conn.prepareStatement(sql.toString());
+
+ResultSet rs = pstmt.executeQuery();
+SubjectBean bean;
+while(rs.next()){
+bean = new SubjectBean();
+
+bean.setId(rs.getLong(1));
+bean.setSubjectName(rs.getString(2));
+bean.setCourseName(rs.getString(3));
+bean.setCourseId(rs.getLong(4));
+bean.setDescription(rs.getString(5));
+bean.setCreatedBy(rs.getString(6));
+bean.setModifiedBy(rs.getString(7));
+bean.setCreateDateTime(rs.getTimestamp(8));
+bean.setModifiedDatetime(rs.getTimestamp(9));
+list.add(bean); 
+}
+rs.close();
+pstmt.close();
+conn.close();
+} catch(Exception e){
+  e.printStackTrace();
+  log.error("Database Exception...",e);
+  throw new ApplicationException("Exception : Exception in getting list "+e.getMessage());
+
+} finally{ 
+  JDBCDataSource.closeConnection(conn);
+  }
+return list;
+}
+
+
+
+}
